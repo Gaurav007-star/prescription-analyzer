@@ -6,6 +6,7 @@ import os from "os";
 import multer from "multer";
 
 import LlamaCloud from "@llamaindex/llama-cloud";
+import { ai_handler } from "./utils/ai_handler";
 
 const client = new LlamaCloud({
   apiKey: process.env.LLAMA_API_KEY || "",
@@ -18,6 +19,11 @@ app.use(cors({
 // allow large base64 payloads from clients (adjust limit as needed)
 app.use(express.json({ limit: "20mb" }));
 
+enum modes {
+  prescription = "prescription",
+  report = "report",
+}
+
 // multer config: store uploads in the OS temp dir; we'll remove files after processing
 const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -27,7 +33,6 @@ app.post("/upload-file", upload.single("file"), async (req, res) => {
   try {
     const f = req.file as Express.Multer.File | undefined;
     if (!f) return res.status(400).json({ error: "No file uploaded (field name must be 'file')" });
-    console.log("File details : ", f);
 
     const readStream = fs.createReadStream(f.path);
     try {
@@ -44,7 +49,13 @@ app.post("/upload-file", upload.single("file"), async (req, res) => {
         version: "latest",
       });
 
-      console.log("Result: ", result);
+      // console.log("Result: ", result);
+      const markdown_full = result.markdown_full || "";
+
+      if (markdown_full) {
+        const parsed = await ai_handler(markdown_full, modes.prescription);
+        return res.json({ markdown: parsed });
+      }
 
 
       return res.json({ markdown: result.markdown_full });

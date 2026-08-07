@@ -1,106 +1,152 @@
 import FileUpload from './FileUpload'
-import { Activity, LayoutDashboard, Sparkles, FileText, ArrowRight } from 'lucide-react'
+import { Activity, Sparkles, FileText, Shield, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 function App() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+
       {/* Navbar */}
-      <header className="border-b bg-card shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <div className="bg-primary text-primary-foreground p-1.5 rounded-md">
+      <header className="sticky top-0 z-20 border-b border-border bg-card/80 backdrop-blur-sm print:hidden">
+        <div className="max-w-7xl mx-auto px-5 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3 font-semibold text-xl tracking-tight">
+            <div className="bg-primary text-primary-foreground p-2 rounded-lg">
               <Activity className="w-5 h-5" />
             </div>
-            <span>PrescriptionAnalyzer</span>
+            <span>PrescriptionAI</span>
           </div>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">Features</a>
-            <a href="#" className="hover:text-foreground transition-colors">Documentation</a>
-            <a href="#" className="hover:text-foreground transition-colors">Pricing</a>
+          <nav className="flex items-center gap-4">
+            <Button size="sm" className="text-base font-medium px-6">Get Started</Button>
           </nav>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" className="hidden sm:flex">Log in</Button>
-            <Button>Get Started</Button>
-          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
       <main className="flex-1">
-        <section className="py-20 md:py-32 px-4 text-center relative overflow-hidden">
-          {/* Background decorations */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10"></div>
-          
-          <div className="container mx-auto max-w-4xl space-y-8 relative z-0">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-sm font-medium text-muted-foreground mb-4">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span>AI-Powered Image Parsing</span>
+
+        {/* Hero */}
+        <section className="py-24 px-4 border-b border-border print:hidden">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-[1fr_auto] gap-16 items-center">
+
+            {/* Left: Copy */}
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-muted text-sm font-medium text-muted-foreground">
+                <Sparkles className="w-4 h-4 text-primary" />
+                AI-Powered Medical Document Analysis
+              </div>
+
+              <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
+                Understand your<br />
+                prescription in <span className="text-primary italic">seconds</span>
+              </h1>
+
+              <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
+                Upload any medical prescription — handwritten or printed — and instantly get a structured breakdown of medicines, dosage, timing, and plain-English explanations.
+              </p>
+
+              <div className="flex flex-wrap gap-4 pt-2">
+                <Button size="lg" className="gap-2 text-base px-6">
+                  Analyze a Prescription <Zap className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="lg" className="text-base px-6">
+                  See how it works
+                </Button>
+              </div>
+
+              {/* Trust Strip */}
+              <div className="flex flex-wrap gap-6 pt-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-foreground" /><strong className="text-foreground">Private.</strong> Files are never stored.</span>
+                <span className="flex items-center gap-2"><FileText className="w-4 h-4 text-foreground" /><strong className="text-foreground">PDF & Image</strong> supported.</span>
+                <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-foreground" /><strong className="text-foreground">AI insights</strong> in plain language.</span>
+              </div>
             </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-balance leading-tight">
-              Transform Prescriptions into <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">Structured Data</span>
-            </h1>
-            <p className="text-xl text-muted-foreground text-balance max-w-2xl mx-auto">
-              Upload images of medical prescriptions and let our advanced AI instantly convert them into clean, structured markdown format.
-            </p>
-            <div className="flex items-center justify-center gap-4 pt-4">
-              <Button size="lg" className="rounded-full gap-2">
-                Start Parsing <ArrowRight className="w-4 h-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-full gap-2">
-                <LayoutDashboard className="w-4 h-4" /> View Dashboard
-              </Button>
+
+            {/* Right: Visual Mock */}
+            <div className="hidden lg:block w-80 shrink-0">
+              <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+                {/* Mock toolbar */}
+                <div className="flex items-center gap-1.5 px-4 py-3 border-b border-border bg-muted/50">
+                  <span className="w-2.5 h-2.5 rounded-full bg-border"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-border"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-border"></span>
+                  <span className="ml-auto text-xs text-muted-foreground font-mono">prescription.pdf</span>
+                </div>
+                {/* Mock prescription card */}
+                <div className="p-5 space-y-4">
+                  <div className="space-y-1.5">
+                    <div className="h-4 bg-foreground/10 rounded w-2/3"></div>
+                    <div className="h-2.5 bg-muted rounded w-1/2"></div>
+                  </div>
+                  <div className="h-px bg-border"></div>
+                  {/* Mock medicine rows */}
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-foreground/30 mt-1.5 shrink-0"></div>
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3 bg-foreground/15 rounded w-3/4"></div>
+                        <div className="h-2.5 bg-muted rounded w-1/2"></div>
+                      </div>
+                      <div className="h-6 w-14 rounded-full bg-muted border border-border text-[10px] text-muted-foreground flex items-center justify-center shrink-0">
+                        {i === 1 ? "5 days" : i === 2 ? "3 days" : "7 days"}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="h-px bg-border"></div>
+                  <div className="flex gap-2 pt-2">
+                    <div className="h-6 w-16 rounded-full bg-muted border border-border"></div>
+                    <div className="h-6 w-20 rounded-full bg-muted border border-border"></div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground text-center mt-4">Structured output, every time.</p>
             </div>
+
           </div>
         </section>
 
-        {/* Upload Section */}
-        <section className="py-16 px-4 bg-muted/30 border-y">
-          <div className="container mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight mb-4">Try it out below</h2>
-              <p className="text-muted-foreground">Secure, fast, and highly accurate medical text extraction.</p>
-            </div>
-            
+        {/* Upload + Result */}
+        <section className="py-12 px-4 bg-muted/30 print:p-0 print:bg-transparent">
+          <div className="max-w-7xl mx-auto print:max-w-none">
             <FileUpload />
-            
           </div>
         </section>
-        
-        {/* Features / Info */}
-        <section className="py-24 px-4">
-          <div className="container mx-auto max-w-5xl">
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                  <FileText className="w-6 h-6" />
+
+        {/* Feature Pills */}
+        <section className="py-16 px-4 border-t border-border print:hidden">
+          <div className="max-w-5xl mx-auto grid sm:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <FileText className="w-6 h-6" />,
+                title: "Smart Extraction",
+                desc: "AI reads both printed and handwritten prescriptions with high accuracy.",
+              },
+              {
+                icon: <Sparkles className="w-6 h-6" />,
+                title: "Patient Insights",
+                desc: "Get simple explanations of medicines, advice, and what to watch out for.",
+              },
+              {
+                icon: <Shield className="w-6 h-6" />,
+                title: "Structured Output",
+                desc: "Neatly organized medication table with dosage, timing, and duration.",
+              },
+            ].map((f, i) => (
+              <div key={i} className="p-6 rounded-xl border border-border bg-card space-y-3">
+                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                  {f.icon}
                 </div>
-                <h3 className="text-xl font-semibold">High Accuracy</h3>
-                <p className="text-muted-foreground">State of the art OCR and AI models ensure your data is extracted with pinpoint precision.</p>
+                <h3 className="text-base font-semibold text-foreground">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-semibold">Markdown Output</h3>
-                <p className="text-muted-foreground">Get clean, formatted markdown that is ready to be used in your applications or exported to PDF.</p>
-              </div>
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                  <Activity className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-semibold">Fast Processing</h3>
-                <p className="text-muted-foreground">Optimized backend processes your uploads in seconds, keeping your workflow uninterrupted.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-8 mt-auto">
-        <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-          <p>© {new Date().getFullYear()} PrescriptionAnalyzer. All rights reserved.</p>
+      <footer className="border-t border-border py-5 print:hidden">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>© {new Date().getFullYear()} PrescriptionAI. All rights reserved.</span>
+          <span>For educational use only. Always consult your doctor.</span>
         </div>
       </footer>
     </div>

@@ -7,7 +7,8 @@ import {
   AlertCircle, Stethoscope, FileText,
   CheckCircle2, XCircle, Phone, MapPin,
   Calendar, User, ClipboardList, HelpCircle,
-  Sparkles, Download, Loader2
+  Sparkles, Download, Loader2, ExternalLink,
+  ShieldCheck, ShieldX, Tag, Building2
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
 
   if (!data || !data.extracted) return null;
 
-  const { extracted, insights } = data;
+  const { extracted, insights, medicine_verification } = data;
   const { doctor, patient, visit, medications, doctor_advice, other_notes } = extracted;
 
   const handleDownloadPDF = async () => {
@@ -298,31 +299,106 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
                 )}
               </div>
 
-              {/* Medicine Explanations */}
-              {insights.medicine_explanations && insights.medicine_explanations.length > 0 && (
+              {/* Medicine Details — with price, manufacturer & pharmacy links */}
+              {(insights.medicine_details ?? insights.medicine_explanations) &&
+                (insights.medicine_details ?? insights.medicine_explanations).length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-5">
                     What are these medicines for?
                   </h3>
                   <div className="grid sm:grid-cols-2 gap-5">
-                    {insights.medicine_explanations.map((med: any, idx: number) => (
-                      <div key={idx} className="rounded-2xl border border-border p-5 bg-card shadow-sm hover:shadow-md transition-shadow">
-                        <p className="text-base font-bold text-foreground">{med.medicine}</p>
-                        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{med.purpose}</p>
-                        {med.common_side_effects && med.common_side_effects.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-border/50">
-                            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Common Side Effects</p>
-                            <div className="flex flex-wrap gap-2">
-                              {med.common_side_effects.map((se: string, si: number) => (
-                                <span key={si} className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground font-medium border border-border/50">
-                                  {se}
-                                </span>
-                              ))}
-                            </div>
+                    {(insights.medicine_details ?? insights.medicine_explanations).map((med: any, idx: number) => {
+                      // Find matching verification data (from medicine_verification or embedded in insights)
+                      const verification = medicine_verification?.find(
+                        (v: any) =>
+                          v.original_name?.toLowerCase() === (med.name ?? med.medicine)?.toLowerCase() ||
+                          v.corrected_name?.toLowerCase() === (med.name ?? med.medicine)?.toLowerCase()
+                      );
+                      const isValid = med.is_valid ?? verification?.is_valid ?? true;
+                      const manufacturer = med.manufacturer || verification?.manufacturer;
+                      const price = med.approximate_price || verification?.approximate_price;
+                      const pharmacyLinks: { site: string; url: string }[] =
+                        med.pharmacy_links ?? verification?.pharmacy_links ?? [];
+
+                      return (
+                        <div key={idx} className="rounded-2xl border border-border p-5 bg-card shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3">
+                          {/* Name + validity badge */}
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-base font-bold text-foreground leading-tight">
+                              {med.corrected_name ?? med.name ?? med.medicine ?? med.original_name ?? "Unnamed Medicine"}
+                            </p>
+                            <span className={`shrink-0 flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                              isValid
+                                ? "bg-green-50 border-green-200 text-green-700 dark:bg-green-950 dark:border-green-800 dark:text-green-400"
+                                : "bg-red-50 border-red-200 text-red-700 dark:bg-red-950 dark:border-red-800 dark:text-red-400"
+                            }`}>
+                              {isValid ? <ShieldCheck className="w-3 h-3" /> : <ShieldX className="w-3 h-3" />}
+                              {isValid ? "Verified" : "Unrecognised"}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    ))}
+
+                          {/* Purpose */}
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {!isValid
+                              ? `"${med.corrected_name ?? med.name ?? med.medicine ?? med.original_name ?? "This medicine"}" was not recognised — please consult your doctor for more information.`
+                              : med.purpose}
+                          </p>
+
+                          {/* Manufacturer + Price row */}
+                          {(manufacturer || price) && (
+                            <div className="flex flex-wrap gap-2">
+                              {manufacturer && manufacturer !== "Not specified" && (
+                                <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted border border-border text-muted-foreground font-medium">
+                                  <Building2 className="w-3 h-3" />
+                                  {manufacturer}
+                                </span>
+                              )}
+                              {price && price !== "Not found" && (
+                                <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-semibold">
+                                  <Tag className="w-3 h-3" />
+                                  {price}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Side Effects */}
+                          {med.common_side_effects && med.common_side_effects.length > 0 && (
+                            <div className="pt-3 border-t border-border/50">
+                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Common Side Effects</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {med.common_side_effects.map((se: string, si: number) => (
+                                  <span key={si} className="text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium border border-border/50">
+                                    {se}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Pharmacy Links */}
+                          {pharmacyLinks.length > 0 && (
+                            <div className="pt-3 border-t border-border/50">
+                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Buy Online</p>
+                              <div className="flex flex-wrap gap-2">
+                                {pharmacyLinks.map((link: { site: string; url: string }, li: number) => (
+                                  <a
+                                    key={li}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-background border border-border hover:border-primary hover:text-primary text-foreground font-medium transition-colors"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    {link.site}
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

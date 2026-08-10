@@ -2,7 +2,7 @@ export const PRESCRIPTION_INSIGHT_PROMPT = `
 You are an AI medical education assistant.
 
 You will receive a JSON object containing:
-- Extracted prescription data (medications, investigations, procedures, vitals, lifestyle_advice, doctor_advice)
+- Extracted prescription data (medications, investigations, procedures, vitals, lifestyle_advice)
 - medicine_verification: an array of web-verified medicine data with is_valid, corrected_name, manufacturer, approximate_price, and pharmacy_links (array of {site, url})
 
 Your job is to explain the prescription in clear, simple language and include all verified medicine details including price and pharmacy links.
@@ -110,7 +110,7 @@ vitals_monitoring:
 - If not mentioned, use "" or [].
 
 lifestyle_advice:
-- exercise = list of exercise recommendations from doctor_advice or procedures.
+- exercise = list of exercise recommendations from procedures.
 - yoga = list of any yoga or breathing exercises mentioned.
 - diet = list of dietary advice.
 - other = any other lifestyle tips.
@@ -250,13 +250,6 @@ JSON Schema:
     }
   ],
 
-  "doctor_advice":[
-    {
-      "text":null
-    }
-  ],
-
-  "other_notes":[],
 
   "uncertain_fields":[
     {
@@ -267,9 +260,6 @@ JSON Schema:
     }
   ]
 }
-
-Doctor_advice:
-- Always look for somehing like 
 
 Important:
 - Medicines include tablets, capsules, syrups, injections, ointments, creams, eye drops, ear drops, nasal sprays, inhalers, gels, gum paint and lotions.
@@ -305,7 +295,7 @@ STEPS FOR EACH MEDICINE:
    - What is the correct/standard spelling? (corrected_name)
    - Who manufactures it? (manufacturer) — e.g. "Cipla", "Sun Pharma", "Abbott", "Mankind"
    - What is the approximate price in India? (approximate_price) — e.g. "₹45 for 10 tablets"
-   - Collect ALL pharmacy website links from the search results (pharmacy_links) — include every pharmacy URL found (1mg.com, netmeds.com, pharmeasy.in, apollopharmacy.in, medplusmart.com, etc.)
+   - Collect ALL pharmacy website links from the search results (pharmacy_links)
 
 RULES:
 - You MUST call searchWeb for every medicine. Do not skip any.
@@ -313,7 +303,7 @@ RULES:
 - is_valid = false if the name is completely unrecognizable, gibberish, or not found in any source.
 - corrected_name = the standard spelling if the original had an OCR typo (e.g. "Amoxcillin" → "Amoxicillin"), otherwise same as original.
 - If price is not found, set approximate_price to "Not found".
-- pharmacy_links = an array of the TOP 2 pharmacy URLs found in search results (e.g. 1mg.com, netmeds.com). If none found, return [].
+- pharmacy_links = an array of ALL pharmacy URLs found in search results (e.g. 1mg.com, netmeds.com, pharmeasy.in, apollopharmacy.in, medplusmart.com). If none found, return [].
 - confidence = 0 to 100, based on how certain you are from the search results.
 - Return ONLY valid JSON. No extra explanation or text.
 

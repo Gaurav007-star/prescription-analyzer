@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  AlertCircle, Stethoscope, FileText,
+  AlertCircle, Stethoscope,
   CheckCircle2, XCircle, Phone, MapPin,
   Calendar, User, ClipboardList, HelpCircle,
   Sparkles, Download, Loader2, ExternalLink,
@@ -20,7 +20,7 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
   if (!data || !data.extracted) return null;
 
   const { extracted, insights, medicine_verification } = data;
-  const { doctor, patient, visit, medications, doctor_advice, other_notes } = extracted;
+  const { doctor, patient, visit, medications, doctor_advice } = extracted;
 
   const handleDownloadPDF = async () => {
     if (!dashboardRef.current) return;
@@ -202,7 +202,7 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
           )}
 
           {/* ── Doctor Advice & Notes ── */}
-          {((doctor_advice && doctor_advice.length > 0) || (other_notes && other_notes.length > 0)) && (
+          {(doctor_advice && doctor_advice.length > 0) && (
             <div className="grid sm:grid-cols-2 gap-6">
               {doctor_advice && doctor_advice.length > 0 && (
                 <div className="rounded-xl border border-border p-5">
@@ -219,21 +219,7 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
                   </ul>
                 </div>
               )}
-              {other_notes && other_notes.length > 0 && (
-                <div className="rounded-xl border border-border p-5">
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Other Notes
-                  </h3>
-                  <ul className="space-y-2">
-                    {other_notes.map((note: string, idx: number) => (
-                      <li key={idx} className="text-sm text-foreground flex items-start gap-2">
-                        <span className="text-primary mt-0.5">•</span>
-                        {note}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+
             </div>
           )}
         </div>

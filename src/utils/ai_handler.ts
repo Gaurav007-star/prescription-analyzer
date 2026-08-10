@@ -19,11 +19,11 @@ const searchWeb = async ({ query }: { query: string }) => {
     const response = await tavilyClient.search(query, {
         max_results: 3,
         searchDepth: "basic",
-        // includeDomains: ["apollopharmacy.in", "1mg.com"],  
+        // includeDomains: ["1mg.com", "netmeds.com", "pharmeasy.in", "apollopharmacy.in", "medplusmart.com"],
     });
 
     return response.results
-        .map(r => `Title: ${r.title}\nURL: ${r.url}\nContent: ${r.content?.slice(0, 200)}`)
+        .map(r => `Title: ${r.title}\nURL: ${r.url}\nContent: ${r.content?.slice(0, 300)}`)
         .join("\n---\n") || "No results found.";
 }
 
@@ -60,21 +60,23 @@ async function callGroq(system: string, user: string) {
 
 // ─── Agentic Groq caller — tool-calling while loop ────────────────────────────
 
-async function callGroqForWebSearch(system: string, user: string) {
+async function callGroqForWebSearch(system: string, user: string, medicineCount = 5) {
 
     const messages: Groq.Chat.ChatCompletionMessageParam[] = [
         { role: "system", content: system },
         { role: "user", content: user },
     ];
 
+    // Allow one search per medicine plus a small buffer
+    const maxSearchCalls = medicineCount + 2;
+
     // NOTE: response_format json_object is incompatible with tools in Groq.
     // We parse JSON from the final text response manually.
     let searchCallCount = 0;
-    const maxSearchCalls = 3; // cap web searches to keep latency and cost low
     while (true) {
         const response = await groq.chat.completions.create({
             model: "openai/gpt-oss-120b",
-            temperature: 0.1,
+            temperature: 0.3,
             messages,
             tools: [
                 {
@@ -173,8 +175,6 @@ export async function ai_handler(text: string, mode: string) {
 
     // Step 1: Extract structured data from OCR/LlamaIndex text
     const extracted = await extractPrescription(text);
-    console.log(extracted);
-    
 
     // Step 2: Verify each medicine via web search tool calling
     // Only pass medicine names — not the full prescription JSON — to keep token count low
@@ -197,27 +197,26 @@ export async function ai_handler(text: string, mode: string) {
             return `Medicine ${idx + 1} (illegible)`;
         })
         .filter(Boolean) ?? [];
-    console.log(" Medicine Names :: ", medicineNames);
 
+    const verified = medicineNames.length > 0
+        ? await callGroqForWebSearch(
+            PRESCRIPTION_VERIFY_PROMPT,
+            JSON.stringify({ medicines: medicineNames }),
+            medicineNames.length
+        )
+        : { verified_medicines: [] };
 
-    // const verified = medicineNames.length > 0
-    //     ? await callGroqForWebSearch(
-    //         PRESCRIPTION_VERIFY_PROMPT,
-    //         JSON.stringify({ medicines: medicineNames })
-    //     )
-    //     : { verified_medicines: [] };
+    // Step 3: Generate insights using verified medicine data
+    const enrichedData = {
+        ...extracted,
+        medicine_verification: verified.verified_medicines ?? [],
+    };
 
-    // // Step 3: Generate insights using verified medicine data
-    // const enrichedData = {
-    //     ...extracted,
-    //     medicine_verification: verified.verified_medicines ?? [],
-    // };
+    const insights = await generatePrescriptionInsights(enrichedData);
 
-    // const insights = await generatePrescriptionInsights(enrichedData);
-
-    // return {
-    //     extracted,
-    //     medicine_verification: verified.verified_medicines ?? [],
-    //     insights,
-    // };
+    return {
+        extracted,
+        medicine_verification: verified.verified_medicines ?? [],
+        insights,
+    };
 }

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, MutableRefObject } from "react";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,13 +7,17 @@ import {
   AlertCircle, Stethoscope,
   CheckCircle2, XCircle, Phone, MapPin,
   Calendar, User, ClipboardList, HelpCircle,
-  Sparkles, Download, Loader2, ExternalLink,
-  ShieldCheck, ShieldX, Tag, Building2
+  Sparkles, ExternalLink,
+  ShieldCheck, ShieldX, Tag, Building2, Pill, Clock
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 
-export default function PrescriptionDashboard({ data }: { data: any }) {
+interface PrescriptionDashboardProps {
+  data: any;
+  exportRef?: MutableRefObject<(() => Promise<void>) | null>;
+  compact?: boolean;
+}
+
+export default function PrescriptionDashboard({ data, exportRef, compact = false }: PrescriptionDashboardProps) {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -21,6 +25,10 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
 
   const { extracted, insights, medicine_verification } = data;
   const { doctor, patient, visit, medications, doctor_advice } = extracted;
+
+  const px = compact ? "px-4" : "px-6";
+  const py = compact ? "py-3" : "py-4";
+  const sectionP = compact ? "p-4" : "p-6";
 
   const handleDownloadPDF = async () => {
     if (!dashboardRef.current) return;
@@ -47,150 +55,149 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
     }
   };
 
-  return (
-    <section className="w-full h-max flex flex-col items-end">
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-max print:hidden gap-2 text-xs h-8"
-        onClick={handleDownloadPDF}
-        disabled={isDownloading}
-      >
-        {isDownloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-        {isDownloading ? "Generating PDF..." : "Download PDF"}
-      </Button>
+  useEffect(() => {
+    if (exportRef) exportRef.current = handleDownloadPDF;
+  });
 
-      <div ref={dashboardRef} className="w-full max-w-5xl mx-auto my-2 bg-card text-card-foreground rounded-xl border border-border overflow-hidden shadow-sm">
+  return (
+    <div className="w-full">
+      <div ref={dashboardRef} className="w-full bg-card text-card-foreground border-2 border-foreground shadow-[var(--shadow)]">
+
         {/* ── Clinic Header ─────────────────────────────── */}
-        <div className="px-8 pt-8 pb-6 border-b border-border">
+        <div className={`${px} ${compact ? 'pt-4 pb-3' : 'pt-6 pb-5'} border-b-2 border-foreground bg-primary text-primary-foreground`}>
           <div className="flex justify-between items-start gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground uppercase leading-tight">
+              <h1 className={`${compact ? 'text-xl' : 'text-2xl'} font-bold tracking-tight uppercase leading-tight`}>
                 {doctor?.name || "Doctor Name"}
               </h1>
-              <p className="text-sm font-semibold text-primary uppercase mt-1.5 tracking-wider">
+              <p className="text-sm font-bold uppercase mt-1 tracking-wider opacity-90">
                 {doctor?.speciality || "Speciality"}
               </p>
-              <p className="text-sm text-muted-foreground mt-3">
+              <p className="text-sm mt-2 opacity-80">
                 {doctor?.hospital}
               </p>
               {doctor?.address && (
-                <p className="text-sm text-muted-foreground flex items-start gap-1.5 mt-1.5">
+                <p className="text-sm flex items-start gap-1.5 mt-1 opacity-80">
                   <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
                   {doctor.address}
                 </p>
               )}
               {doctor?.contact && (
-                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
+                <p className="text-sm flex items-center gap-1.5 mt-1 opacity-80">
                   <Phone className="w-4 h-4 shrink-0" />
                   {doctor.contact}
                 </p>
               )}
             </div>
-            <div className="text-right shrink-0 space-y-3">
-              <div className="flex flex-col items-end space-y-2">
-                <Badge variant="outline" className="font-mono uppercase text-xs tracking-widest px-2.5 py-0.5">
-                  {extracted.document_type || "Prescription"}
-                </Badge>
-                {doctor?.registration_no && (
-                  <p className="text-xs text-muted-foreground">Reg: {doctor.registration_no}</p>
-                )}
-              </div>
-
-
+            <div className="text-right shrink-0 space-y-2">
+              <Badge className="font-mono uppercase text-xs tracking-widest px-3 py-1 bg-card text-card-foreground border-2 border-foreground">
+                {extracted.document_type || "Prescription"}
+              </Badge>
+              {doctor?.registration_no && (
+                <p className="text-xs opacity-70">Reg: {doctor.registration_no}</p>
+              )}
             </div>
           </div>
         </div>
 
         {/* ── Patient + Date Row ────────────────────────── */}
-        <div className="px-8 py-4 bg-muted/40 border-b border-border flex flex-wrap gap-x-10 gap-y-3 text-sm">
-          <span className="flex items-center gap-2 text-foreground">
-            <User className="w-4 h-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Patient:</span>
-            <span className="font-semibold">{patient?.name || "N/A"}</span>
-            {patient?.age && <span className="font-semibold text-muted-foreground">· {patient.age}y</span>}
-            {patient?.sex && <span className="font-semibold text-muted-foreground capitalize">· {patient.sex}</span>}
+        <div className={`${px} ${py} bg-secondary border-b-2 border-foreground flex flex-wrap gap-x-8 gap-y-2 text-sm font-medium`}>
+          <span className="flex items-center gap-2">
+            <User className="w-4 h-4" />
+            <span>Patient:</span>
+            <span className="font-bold">{patient?.name || "N/A"}</span>
+            {patient?.age && <span className="opacity-70">· {patient.age}y</span>}
+            {patient?.sex && <span className="opacity-70 capitalize">· {patient.sex}</span>}
           </span>
           <span className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Date:</span>
-            <span className="font-semibold text-foreground">{visit?.date || "N/A"}</span>
+            <Calendar className="w-4 h-4" />
+            <span>Date:</span>
+            <span className="font-bold">{visit?.date || "N/A"}</span>
           </span>
         </div>
 
         {/* ── Prescribed Medications ────────────────────── */}
-        <div className="p-8">
-          <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-            Prescribed Medications
-          </h2>
+        <div className={sectionP}>
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="p-1.5 border-2 border-foreground bg-accent">
+              <Pill className="w-4 h-4" />
+            </div>
+            <h2 className="text-sm font-bold uppercase tracking-widest">
+              Prescribed Medications
+            </h2>
+            {medications && medications.length > 0 && (
+              <Badge className="ml-auto text-xs font-bold px-2 py-0.5 bg-primary text-primary-foreground border-2 border-foreground">
+                {medications.length} {medications.length === 1 ? 'medicine' : 'medicines'}
+              </Badge>
+            )}
+          </div>
 
           {medications && medications.length > 0 ? (
-            <div className="rounded-lg border border-border overflow-hidden mb-6">
+            <div className="border-2 border-foreground overflow-hidden mb-5 shadow-[var(--shadow-sm)]">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wide w-[250px] py-4">Medicine</TableHead>
-                    <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wide py-4">Dosage & Instructions</TableHead>
-                    <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right py-4">Duration</TableHead>
+                  <TableRow className="bg-muted border-b-2 border-foreground hover:bg-muted">
+                    <TableHead className={`text-xs font-bold uppercase tracking-wide ${compact ? 'w-[160px]' : 'w-[220px]'} py-3 border-r-2 border-foreground`}>Medicine</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wide py-3 border-r-2 border-foreground">Dosage & Instructions</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wide text-right py-3">Duration</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {medications.map((med: any, idx: number) => (
-                    <TableRow key={idx} className="border-b border-border last:border-0">
-                      <TableCell className="align-top py-4">
-                        <p className="text-base font-semibold text-foreground">
+                    <TableRow key={idx} className="border-b-2 border-foreground last:border-0 hover:bg-muted/50 transition-colors">
+                      <TableCell className="align-top py-3 border-r-2 border-foreground">
+                        <p className="text-sm font-bold">
                           {med.name}
-                          {med.strength && <span className="font-normal text-muted-foreground ml-1">{med.strength}</span>}
+                          {med.strength && <span className="font-normal opacity-70 ml-1">{med.strength}</span>}
                         </p>
                         {med.form && (
-                          <Badge variant="secondary" className="mt-1.5 text-xs font-normal px-2">
+                          <Badge className="mt-1.5 text-[10px] font-bold px-2 py-0.5 bg-muted border-2 border-foreground">
                             {med.form}
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="align-top py-4">
-                        {/* Dosage pattern */}
+                      <TableCell className="align-top py-3 border-r-2 border-foreground">
                         {(med.dosage?.pattern || med.dosage_pattern) && (
-                          <p className="text-base font-mono font-medium text-foreground">
+                          <p className="text-sm font-mono font-bold">
                             {med.dosage?.pattern || med.dosage_pattern}
                           </p>
                         )}
-                        {/* Human-readable */}
                         {med.dosage?.display?.human_readable && (
-                          <p className="text-sm text-primary font-medium mt-1">{med.dosage.display.human_readable}</p>
+                          <p className="text-xs text-primary font-bold mt-1">{med.dosage.display.human_readable}</p>
                         )}
-                        {/* Morning / Afternoon / Night pills */}
                         {med.dosage?.display && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {med.dosage.display.morning && (
-                              <Badge variant="outline" className="text-xs px-2 py-0.5 font-normal">
-                                🌅 Morning · {med.dosage.display.morning}
+                              <Badge className="text-[10px] px-2 py-0.5 font-bold bg-primary text-primary-foreground border-2 border-foreground">
+                                <Clock className="w-3 h-3 mr-1" />
+                                AM · {med.dosage.display.morning}
                               </Badge>
                             )}
                             {med.dosage.display.afternoon && (
-                              <Badge variant="outline" className="text-xs px-2 py-0.5 font-normal">
-                                ☀️ Afternoon · {med.dosage.display.afternoon}
+                              <Badge className="text-[10px] px-2 py-0.5 font-bold bg-accent text-accent-foreground border-2 border-foreground">
+                                <Clock className="w-3 h-3 mr-1" />
+                                PM · {med.dosage.display.afternoon}
                               </Badge>
                             )}
                             {med.dosage.display.night && (
-                              <Badge variant="outline" className="text-xs px-2 py-0.5 font-normal">
-                                🌙 Night · {med.dosage.display.night}
+                              <Badge className="text-[10px] px-2 py-0.5 font-bold bg-secondary text-secondary-foreground border-2 border-foreground">
+                                <Clock className="w-3 h-3 mr-1" />
+                                Night · {med.dosage.display.night}
                               </Badge>
                             )}
                           </div>
                         )}
-                        {/* Timing / Route / Notes */}
-                        <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                          {med.timing && <div><span className="text-foreground/50">Timing:</span> {med.timing}</div>}
-                          {med.route && <div><span className="text-foreground/50">Route:</span> {med.route}</div>}
-                          {med.instructions && <div><span className="text-foreground/50">Note:</span> {med.instructions}</div>}
+                        <div className="mt-2 space-y-0.5 text-xs opacity-70">
+                          {med.timing && <div><span className="opacity-50">Timing:</span> {med.timing}</div>}
+                          {med.route && <div><span className="opacity-50">Route:</span> {med.route}</div>}
+                          {med.instructions && <div><span className="opacity-50">Note:</span> {med.instructions}</div>}
                         </div>
                         {(!med.dosage && !med.dosage_pattern && !med.timing && !med.route && !med.instructions) && (
-                          <span className="text-muted-foreground text-sm">—</span>
+                          <span className="opacity-50 text-sm">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="align-top py-4 text-right">
-                        <span className="text-sm font-medium text-foreground">{med.duration || "—"}</span>
+                      <TableCell className="align-top py-3 text-right">
+                        <span className="text-sm font-bold">{med.duration || "—"}</span>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -198,68 +205,72 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
               </Table>
             </div>
           ) : (
-            <p className="text-base text-muted-foreground italic mb-6">No medications found.</p>
+            <p className="text-sm opacity-50 italic mb-5">No medications found.</p>
           )}
 
-          {/* ── Doctor Advice & Notes ── */}
+          {/* ── Doctor Advice ── */}
           {(doctor_advice && doctor_advice.length > 0) && (
-            <div className="grid sm:grid-cols-2 gap-6">
-              {doctor_advice && doctor_advice.length > 0 && (
-                <div className="rounded-xl border border-border p-5">
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4" /> Doctor Advice
-                  </h3>
-                  <ul className="space-y-2">
-                    {doctor_advice.map((advice: any, idx: number) => (
-                      <li key={idx} className="text-sm text-foreground flex items-start gap-2">
-                        <span className="text-primary mt-0.5">•</span>
-                        {advice.text}
-                      </li>
-                    ))}
-                  </ul>
+            <div className="border-2 border-foreground p-4 bg-muted shadow-[var(--shadow-sm)]">
+              <h3 className="text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                <div className="p-1 border-2 border-foreground bg-accent">
+                  <ClipboardList className="w-3.5 h-3.5" />
                 </div>
-              )}
-
+                Doctor Advice
+              </h3>
+              <ul className="space-y-2">
+                {doctor_advice.map((advice: any, idx: number) => (
+                  <li key={idx} className="text-sm flex items-start gap-2.5">
+                    <div className="mt-1.5 w-2 h-2 bg-primary border border-foreground shrink-0" />
+                    {advice.text}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
 
         {/* ── AI Insights ───────────────────────────────── */}
         {insights && (
-          <div className="bg-gradient-to-b from-primary/[0.03] to-transparent border-t-2 border-primary/10">
-            <div className="p-8">
+          <div className="border-t-2 border-foreground">
+            <div className={`${sectionP}`}>
               {/* Header */}
-              <div className="flex items-center gap-4 mb-8">
-                <div className="p-3 rounded-2xl bg-primary text-primary-foreground shadow-sm">
-                  <Stethoscope className="w-6 h-6" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2.5 bg-primary border-2 border-foreground shadow-[var(--shadow-sm)]">
+                  <Stethoscope className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground tracking-tight">Patient Guide</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">AI-generated plain English summary</p>
+                  <h2 className={`${compact ? 'text-base' : 'text-lg'} font-bold tracking-tight`}>Patient Guide</h2>
+                  <p className="text-xs opacity-60 mt-0.5">AI-generated plain English summary</p>
                 </div>
-                <div className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold shadow-sm">
+                <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 bg-accent border-2 border-foreground text-xs font-bold shadow-[var(--shadow-sm)]">
                   <Sparkles className="w-3.5 h-3.5" />
                   AI Generated
                 </div>
               </div>
 
+              {/* Overview */}
               {insights.summary?.overview && (
-                <p className="text-base text-foreground leading-relaxed mb-8 p-5 rounded-2xl bg-card border border-border shadow-sm">
-                  {insights.summary.overview}
-                </p>
+                <div className="mb-6 p-4 bg-muted border-2 border-foreground shadow-[var(--shadow-sm)]">
+                  <p className="text-sm leading-relaxed font-medium">
+                    {insights.summary.overview}
+                  </p>
+                </div>
               )}
 
-              <div className="grid sm:grid-cols-2 gap-6 mb-8">
-                {/* Do */}
+              {/* Do / Avoid */}
+              <div className="grid sm:grid-cols-2 gap-4 mb-6">
                 {insights.do && insights.do.length > 0 && (
-                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-primary mb-5 flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5" /> To Do
+                  <div className="border-2 border-foreground bg-primary/10 p-4 shadow-[var(--shadow-sm)]">
+                    <h3 className="text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <div className="p-1 border-2 border-foreground bg-primary text-primary-foreground">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </div>
+                      To Do
                     </h3>
-                    <ul className="space-y-3">
+                    <ul className="space-y-2.5">
                       {insights.do.map((item: string, idx: number) => (
-                        <li key={idx} className="text-sm text-foreground flex items-start gap-3">
-                          <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        <li key={idx} className="text-sm flex items-start gap-2.5">
+                          <div className="mt-1.5 w-2 h-2 bg-primary border border-foreground shrink-0" />
                           {item}
                         </li>
                       ))}
@@ -267,16 +278,18 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
                   </div>
                 )}
 
-                {/* Avoid */}
                 {insights.avoid && insights.avoid.length > 0 && (
-                  <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-destructive mb-5 flex items-center gap-2">
-                      <XCircle className="w-5 h-5" /> To Avoid
+                  <div className="border-2 border-foreground bg-destructive/10 p-4 shadow-[var(--shadow-sm)]">
+                    <h3 className="text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <div className="p-1 border-2 border-foreground bg-destructive text-destructive-foreground">
+                        <XCircle className="w-3.5 h-3.5" />
+                      </div>
+                      To Avoid
                     </h3>
-                    <ul className="space-y-3">
+                    <ul className="space-y-2.5">
                       {insights.avoid.map((item: string, idx: number) => (
-                        <li key={idx} className="text-sm text-foreground flex items-start gap-3">
-                          <div className="mt-1 w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />
+                        <li key={idx} className="text-sm flex items-start gap-2.5">
+                          <div className="mt-1.5 w-2 h-2 bg-destructive border border-foreground shrink-0" />
                           {item}
                         </li>
                       ))}
@@ -285,16 +298,20 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
                 )}
               </div>
 
-              {/* Medicine Details — with price, manufacturer & pharmacy links */}
+              {/* Medicine Details */}
               {(insights.medicine_details ?? insights.medicine_explanations) &&
                 (insights.medicine_details ?? insights.medicine_explanations).length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-5">
-                    What are these medicines for?
-                  </h3>
-                  <div className="grid sm:grid-cols-2 gap-5">
+                <div className="mb-6">
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="p-1.5 border-2 border-foreground bg-accent">
+                      <Pill className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-sm font-bold uppercase tracking-widest">
+                      What are these medicines for?
+                    </h3>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-3">
                     {(insights.medicine_details ?? insights.medicine_explanations).map((med: any, idx: number) => {
-                      // Find matching verification data (from medicine_verification or embedded in insights)
                       const verification = medicine_verification?.find(
                         (v: any) =>
                           v.original_name?.toLowerCase() === (med.name ?? med.medicine)?.toLowerCase() ||
@@ -307,40 +324,37 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
                         med.pharmacy_links ?? verification?.pharmacy_links ?? [];
 
                       return (
-                        <div key={idx} className="rounded-2xl border border-border p-5 bg-card shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3">
-                          {/* Name + validity badge */}
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-base font-bold text-foreground leading-tight">
+                        <div key={idx} className="border-2 border-foreground p-4 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow)] transition-shadow">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <p className="text-sm font-bold leading-tight">
                               {med.corrected_name ?? med.name ?? med.medicine ?? med.original_name ?? "Unnamed Medicine"}
                             </p>
-                            <span className={`shrink-0 flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                            <Badge className={`shrink-0 text-[10px] font-bold px-2 py-0.5 border-2 border-foreground ${
                               isValid
-                                ? "bg-green-50 border-green-200 text-green-700 dark:bg-green-950 dark:border-green-800 dark:text-green-400"
-                                : "bg-red-50 border-red-200 text-red-700 dark:bg-red-950 dark:border-red-800 dark:text-red-400"
+                                ? "bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100"
+                                : "bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100"
                             }`}>
-                              {isValid ? <ShieldCheck className="w-3 h-3" /> : <ShieldX className="w-3 h-3" />}
+                              {isValid ? <ShieldCheck className="w-3 h-3 mr-0.5" /> : <ShieldX className="w-3 h-3 mr-0.5" />}
                               {isValid ? "Verified" : "Unrecognised"}
-                            </span>
+                            </Badge>
                           </div>
 
-                          {/* Purpose */}
-                          <p className="text-sm text-muted-foreground leading-relaxed">
+                          <p className="text-xs opacity-70 leading-relaxed mb-2">
                             {!isValid
-                              ? `"${med.corrected_name ?? med.name ?? med.medicine ?? med.original_name ?? "This medicine"}" was not recognised — please consult your doctor for more information.`
+                              ? `"${med.corrected_name ?? med.name ?? med.medicine ?? med.original_name ?? "This medicine"}" was not recognised — please consult your doctor.`
                               : med.purpose}
                           </p>
 
-                          {/* Manufacturer + Price row */}
                           {(manufacturer || price) && (
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-1.5 mb-2">
                               {manufacturer && manufacturer !== "Not specified" && (
-                                <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted border border-border text-muted-foreground font-medium">
+                                <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 border-2 border-foreground bg-muted font-bold">
                                   <Building2 className="w-3 h-3" />
                                   {manufacturer}
                                 </span>
                               )}
                               {price && price !== "Not found" && (
-                                <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-semibold">
+                                <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 border-2 border-foreground bg-primary text-primary-foreground font-bold">
                                   <Tag className="w-3 h-3" />
                                   {price}
                                 </span>
@@ -348,13 +362,12 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
                             </div>
                           )}
 
-                          {/* Side Effects */}
                           {med.common_side_effects && med.common_side_effects.length > 0 && (
-                            <div className="pt-3 border-t border-border/50">
-                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Common Side Effects</p>
-                              <div className="flex flex-wrap gap-1.5">
+                            <div className="pt-2 border-t-2 border-foreground/30">
+                              <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 opacity-60">Side Effects</p>
+                              <div className="flex flex-wrap gap-1">
                                 {med.common_side_effects.map((se: string, si: number) => (
-                                  <span key={si} className="text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium border border-border/50">
+                                  <span key={si} className="text-[10px] px-2 py-0.5 border border-foreground/50 bg-muted font-bold">
                                     {se}
                                   </span>
                                 ))}
@@ -362,18 +375,17 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
                             </div>
                           )}
 
-                          {/* Pharmacy Links */}
                           {pharmacyLinks.length > 0 && (
-                            <div className="pt-3 border-t border-border/50">
-                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Buy Online</p>
-                              <div className="flex flex-wrap gap-2">
+                            <div className="pt-2 border-t-2 border-foreground/30">
+                              <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 opacity-60">Buy Online</p>
+                              <div className="flex flex-wrap gap-1.5">
                                 {pharmacyLinks.map((link: { site: string; url: string }, li: number) => (
                                   <a
                                     key={li}
                                     href={link.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-background border border-border hover:border-primary hover:text-primary text-foreground font-medium transition-colors"
+                                    className="flex items-center gap-1 text-[10px] px-2 py-1 border-2 border-foreground bg-card hover:bg-primary hover:text-primary-foreground font-bold transition-colors"
                                   >
                                     <ExternalLink className="w-3 h-3" />
                                     {link.site}
@@ -391,46 +403,61 @@ export default function PrescriptionDashboard({ data }: { data: any }) {
 
               {/* Warning Signs */}
               {insights.warning_signs && insights.warning_signs.length > 0 && (
-                <Alert variant="destructive" className="mb-8 rounded-2xl border-destructive/30 bg-destructive/5">
-                  <AlertCircle className="h-5 w-5" />
-                  <AlertTitle className="text-sm font-bold">Warning Signs — Contact your doctor immediately if you experience:</AlertTitle>
-                  <AlertDescription className="text-sm mt-2 leading-relaxed">
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                      {insights.warning_signs.map((ws: string, i: number) => (
-                        <li key={i}>{ws}</li>
-                      ))}
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Questions for Doctor */}
-              {insights.questions_for_doctor && insights.questions_for_doctor.length > 0 && (
-                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm mb-6">
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-5 flex items-center gap-2">
-                    <HelpCircle className="w-5 h-5" /> Ask your doctor next time
-                  </h3>
-                  <ul className="space-y-3">
-                    {insights.questions_for_doctor.map((q: string, idx: number) => (
-                      <li key={idx} className="text-sm text-foreground flex items-start gap-3 bg-muted/30 p-3 rounded-xl border border-border/50">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-background border border-border text-xs font-bold text-muted-foreground shrink-0 mt-0.5">
-                          {idx + 1}
-                        </span>
-                        <span className="mt-1">{q}</span>
+                <div className="mb-6 border-2 border-foreground bg-destructive/10 p-4 shadow-[var(--shadow-sm)]">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="p-1.5 border-2 border-foreground bg-destructive text-destructive-foreground">
+                      <AlertCircle className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-sm font-bold uppercase tracking-widest">
+                      Warning Signs
+                    </h3>
+                  </div>
+                  <p className="text-xs font-bold mb-2">Contact your doctor immediately if you experience:</p>
+                  <ul className="space-y-2">
+                    {insights.warning_signs.map((ws: string, i: number) => (
+                      <li key={i} className="text-sm flex items-start gap-2.5">
+                        <div className="mt-1.5 w-2 h-2 bg-destructive border border-foreground shrink-0" />
+                        {ws}
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              <p className="text-xs text-muted-foreground/80 font-medium text-center pt-6 border-t border-border/50">
-                {insights.disclaimer || "This guide is generated by AI for educational purposes only. Always follow your doctor's official advice."}
-              </p>
+              {/* Questions for Doctor */}
+              {insights.questions_for_doctor && insights.questions_for_doctor.length > 0 && (
+                <div className="border-2 border-foreground bg-card p-4 shadow-[var(--shadow-sm)] mb-5">
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="p-1.5 border-2 border-foreground bg-secondary">
+                      <HelpCircle className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-sm font-bold uppercase tracking-widest">
+                      Ask your doctor next time
+                    </h3>
+                  </div>
+                  <ul className="space-y-2">
+                    {insights.questions_for_doctor.map((q: string, idx: number) => (
+                      <li key={idx} className="text-sm flex items-start gap-3 bg-muted p-3 border-2 border-foreground">
+                        <span className="flex items-center justify-center w-6 h-6 bg-primary text-primary-foreground border-2 border-foreground text-xs font-bold shrink-0">
+                          {idx + 1}
+                        </span>
+                        <span className="font-medium">{q}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Disclaimer */}
+              <div className="pt-4 border-t-2 border-foreground/30">
+                <p className="text-[11px] opacity-50 font-medium text-center">
+                  {insights.disclaimer || "This guide is generated by AI for educational purposes only. Always follow your doctor's official advice."}
+                </p>
+              </div>
             </div>
           </div>
         )}
       </div>
-    </section>
-
+    </div>
   );
 }

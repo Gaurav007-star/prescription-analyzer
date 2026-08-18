@@ -1,51 +1,36 @@
-import FileUpload from "./FileUpload";
-import { Activity, Sparkles, FileText, Shield, Zap, TrendingUp, Users, Clock, CheckCircle } from "lucide-react";
+import { Routes, Route } from "react-router-dom";
+import Home from "./FileUpload";
+import Analysis from "./pages/Analysis";
+import { Navbar } from "@/components/custom/Navbar";
+import { Activity, Sparkles, FileText, Shield, Zap, Users, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-function App() {
+function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
       {/* Navbar */}
-      <header className="sticky top-0 z-20 border-b-2 border-foreground bg-card print:hidden">
-        <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 font-bold text-lg tracking-tight">
-            <div className="bg-primary text-primary-foreground p-2 border-2 border-foreground shadow-[var(--shadow-sm)]">
-              <Activity className="w-4 h-4" />
-            </div>
-            <span className="uppercase">PrescriptionAI</span>
-          </div>
-          <nav className="flex items-center gap-4">
-            <Button size="sm" className="text-sm font-bold uppercase px-5 border-2 border-foreground shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all">
-              Get Started
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="flex-1">
         {/* Hero */}
         <section className="relative overflow-hidden print:hidden">
           <div className="mx-auto max-w-7xl px-5 pb-20 pt-20 text-center">
-            {/* Announcement pill */}
             <div className="inline-flex items-center gap-2 border-2 border-foreground bg-secondary px-4 py-1.5 text-sm font-bold uppercase tracking-wide shadow-[var(--shadow-sm)]">
               <Sparkles className="h-4 w-4 text-primary" />
               AI-Powered Medical Document Analysis
             </div>
 
-            {/* Headline */}
             <h1 className="mx-auto mt-8 max-w-4xl font-serif text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
               Understand your prescription in Seconds
             </h1>
 
-            {/* Subheadline */}
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed opacity-70">
               Upload any medical prescription — handwritten or printed — and
               instantly get a structured breakdown of medicines, dosage, timing,
               and plain-English explanations.
             </p>
 
-            {/* CTAs */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button
                 size="lg"
@@ -58,7 +43,6 @@ function App() {
               </Button>
             </div>
 
-            {/* Trust strip */}
             <div className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-sm font-medium">
               <span className="flex items-center gap-2 border-2 border-foreground bg-secondary px-3 py-1.5 shadow-[var(--shadow-sm)]">
                 <Shield className="h-4 w-4" />
@@ -74,10 +58,8 @@ function App() {
               </span>
             </div>
 
-            {/* Product preview */}
             <div className="relative mx-auto mt-14 max-w-5xl text-left">
               <div className="border-2 border-foreground bg-card shadow-[var(--shadow-lg)] overflow-hidden">
-                {/* Browser toolbar */}
                 <div className="flex items-center gap-2 border-b-2 border-foreground bg-muted px-4 py-2.5">
                   <div className="flex gap-1.5">
                     <span className="h-2.5 w-2.5 bg-secondary border border-foreground"></span>
@@ -92,7 +74,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* Mock dashboard */}
                 <div className="grid gap-3 bg-card p-5 sm:grid-cols-2">
                   {[
                     { name: "Amoxicillin", strength: "500mg", form: "Capsule", timing: "After food", days: "5 days", doses: ["AM 1", "Night 1"] },
@@ -134,7 +115,6 @@ function App() {
                   ))}
                 </div>
 
-                {/* AI insight bar */}
                 <div className="flex items-center gap-3 border-t-2 border-foreground bg-secondary/60 px-5 py-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-primary text-primary-foreground border-2 border-foreground shadow-[var(--shadow-sm)]">
                     <Sparkles className="h-4 w-4" />
@@ -152,10 +132,10 @@ function App() {
           </div>
         </section>
 
-        {/* Upload + Result */}
+        {/* Upload */}
         <section className="py-10 px-4 border-t-2 border-foreground bg-secondary/40 print:p-0 print:bg-transparent">
           <div className="max-w-7xl mx-auto print:max-w-none">
-            <FileUpload />
+            <Home />
           </div>
         </section>
 
@@ -189,7 +169,6 @@ function App() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="border-t-2 border-foreground py-4 bg-secondary/30 print:hidden">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-medium opacity-60">
           <span>
@@ -202,4 +181,11 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/analysis" element={<Analysis />} />
+    </Routes>
+  );
+}

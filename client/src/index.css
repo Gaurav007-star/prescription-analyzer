@@ -159,11 +159,12 @@
 /* ── Custom Scrollbar ─────────────────────────────────────────────────────── */
 .scroll-primary {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: transparent transparent;
+  scroll-behavior: smooth;
 }
 
 .scroll-primary::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 .scroll-primary::-webkit-scrollbar-track {
@@ -171,13 +172,27 @@
 }
 
 .scroll-primary::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 9999px;
+  background: transparent;
+  border-radius: 0;
+  transition: background 0.3s ease;
+}
+
+.scroll-primary::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.scroll-primary:hover {
+  scrollbar-color: var(--color-muted-foreground) transparent;
+}
+
+.scroll-primary:hover::-webkit-scrollbar-thumb {
+  background: var(--color-muted-foreground);
 }
 
 .scroll-muted {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: transparent transparent;
+  scroll-behavior: smooth;
 }
 
 .scroll-muted::-webkit-scrollbar {
@@ -189,11 +204,20 @@
 }
 
 .scroll-muted::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 9999px;
-  transition: background 0.2s;
+  background: transparent;
+  border-radius: 0;
+  transition: background 0.3s ease;
+}
+
+.scroll-muted::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.scroll-muted:hover {
+  scrollbar-color: var(--color-muted-foreground) transparent;
 }
 
 .scroll-muted:hover::-webkit-scrollbar-thumb {
   background: var(--color-muted-foreground);
+  opacity: 0.5;
 }
